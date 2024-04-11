@@ -1,4 +1,9 @@
 #include "RetroEngine.hpp"
+
+#if RETRO_PLATFORM == RETRO_XBOX
+bool waitForVerify  = false;
+#endif
+
 #if RETRO_USE_NETWORKING
 
 #include <cstdlib>

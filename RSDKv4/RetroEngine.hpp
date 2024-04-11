@@ -53,12 +53,13 @@ typedef unsigned int uint;
 // Custom Platforms start here
 #define RETRO_UWP   (7)
 #define RETRO_LINUX (8)
+#define RETRO_XBOX  (9)
 
 // Platform types (Game manages platform-specific code such as HUD position using this rather than the above)
 #define RETRO_STANDARD (0)
 #define RETRO_MOBILE   (1)
 
-#if defined _WIN32
+#if defined _WIN32 && !defined __XBOX__
 
 #if defined WINAPI_FAMILY
 #if WINAPI_FAMILY != WINAPI_FAMILY_APP
@@ -90,6 +91,10 @@ typedef unsigned int uint;
 #elif defined(__linux__)
 #define RETRO_PLATFORM   (RETRO_LINUX)
 #define RETRO_DEVICETYPE (RETRO_STANDARD)
+#elif defined __XBOX__
+#define RETRO_PLATFORM   (RETRO_XBOX)
+#define RETRO_DEVICETYPE (RETRO_STANDARD)
+#define DEFAULT_FULLSCREEN true
 #else
 //#error "No Platform was defined"
 #define RETRO_PLATFORM   (RETRO_WIN)
@@ -110,7 +115,7 @@ typedef unsigned int uint;
 #endif
 
 #if RETRO_PLATFORM == RETRO_WIN || RETRO_PLATFORM == RETRO_OSX || RETRO_PLATFORM == RETRO_LINUX || RETRO_PLATFORM == RETRO_UWP                       \
-    || RETRO_PLATFORM == RETRO_ANDROID
+    || RETRO_PLATFORM == RETRO_ANDROID || RETRO_PLATFORM == RETRO_XBOX
 #ifdef RETRO_USE_SDL2
 #define RETRO_USING_SDL1 (0)
 #define RETRO_USING_SDL2 (1)
@@ -131,8 +136,13 @@ typedef unsigned int uint;
 #define RETRO_GAMEPLATFORM (RETRO_STANDARD)
 #endif
 
+#if RETRO_PLATFORM == RETRO_XBOX
+#define RETRO_SW_RENDER (1)
+#define RETRO_HW_RENDER (0)
+#else
 #define RETRO_SW_RENDER (0)
 #define RETRO_HW_RENDER (1)
+#endif
 
 #ifdef USE_SW_REN
 #define RETRO_RENDERTYPE (RETRO_SW_RENDER)
@@ -202,7 +212,11 @@ typedef unsigned int uint;
 #endif
 #endif
 
-#define RETRO_USE_HAPTICS (1)
+#if RETRO_PLATFORM == RETRO_XBOX
+    #define RETRO_USE_HAPTICS (0)
+#else
+    #define RETRO_USE_HAPTICS (1)
+#endif
 
 // NOTE: This is only used for rev00 stuff, it was removed in rev01 and later builds
 #if RETRO_PLATFORM <= RETRO_WP7
@@ -210,7 +224,7 @@ typedef unsigned int uint;
 #else
 
 // use *this* macro to determine what platform the game thinks its running on (since only the first 7 platforms are supported natively by scripts)
-#if RETRO_PLATFORM == RETRO_LINUX
+#if RETRO_PLATFORM == RETRO_LINUX || RETRO_PLATFORM == RETRO_XBOX
 #define RETRO_GAMEPLATFORMID (RETRO_WIN)
 #elif RETRO_PLATFORM == RETRO_UWP
 #define RETRO_GAMEPLATFORMID (UAP_GetRetroGamePlatformId())
@@ -305,8 +319,17 @@ enum RetroGameType {
 
 #include "cocoaHelpers.hpp"
 
-#elif RETRO_USING_SDL2
+#elif RETRO_USING_SDL2 && RETRO_PLATFORM != RETRO_XBOX
 #include <SDL2/SDL.h>
+#include <vorbis/vorbisfile.h>
+
+#elif RETRO_PLATFORM == RETRO_XBOX
+#include <hal/debug.h>
+#include <hal/video.h>
+#include <windows.h>
+#include <stdbool.h>
+#include <hal/xbox.h>
+#include <SDL.h>
 #include <vorbis/vorbisfile.h>
 #else
 

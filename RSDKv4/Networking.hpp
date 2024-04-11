@@ -1,3 +1,7 @@
+#if RETRO_PLATFORM == RETRO_XBOX
+extern bool waitForVerify;
+#endif
+
 #if RETRO_USE_NETWORKING
 #ifndef NETWORKING_H
 #define NETWORKING_H

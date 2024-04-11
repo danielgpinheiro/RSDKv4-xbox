@@ -1,0 +1,123 @@
+XBE_TITLE = RSDKv4X
+GEN_XISO = $(XBE_TITLE).iso
+NXDK_DIR = $(CURDIR)/dependencies/xbox/nxdk
+RSDKV4_DIR = $(CURDIR)/RSDKv4
+NXDK_CXX = y
+NXDK_SDL = y
+
+SRCS += \
+			$(RSDKV4_DIR)/Animation.cpp     \
+			$(RSDKV4_DIR)/Audio.cpp         \
+			$(RSDKV4_DIR)/Collision.cpp     \
+			$(RSDKV4_DIR)/Debug.cpp         \
+			$(RSDKV4_DIR)/Drawing.cpp       \
+			$(RSDKV4_DIR)/Ini.cpp           \
+			$(RSDKV4_DIR)/Input.cpp         \
+			$(RSDKV4_DIR)/main.cpp          \
+			$(RSDKV4_DIR)/Math.cpp          \
+			$(RSDKV4_DIR)/ModAPI.cpp        \
+			$(RSDKV4_DIR)/Networking.cpp	 	 \
+			$(RSDKV4_DIR)/Object.cpp        \
+			$(RSDKV4_DIR)/Palette.cpp       \
+			$(RSDKV4_DIR)/Reader.cpp        \
+			$(RSDKV4_DIR)/Renderer.cpp      \
+			$(RSDKV4_DIR)/RetroEngine.cpp   \
+			$(RSDKV4_DIR)/Scene.cpp         \
+			$(RSDKV4_DIR)/Scene3D.cpp       \
+			$(RSDKV4_DIR)/Script.cpp        \
+			$(RSDKV4_DIR)/Sprite.cpp        \
+			$(RSDKV4_DIR)/String.cpp        \
+			$(RSDKV4_DIR)/Text.cpp          \
+			$(RSDKV4_DIR)/Userdata.cpp      \
+			$(RSDKV4_DIR)/NativeObjects/AboutScreen.cpp        \
+			$(RSDKV4_DIR)/NativeObjects/AchievementDisplay.cpp \
+			$(RSDKV4_DIR)/NativeObjects/AchievementsButton.cpp \
+			$(RSDKV4_DIR)/NativeObjects/AchievementsMenu.cpp   \
+			$(RSDKV4_DIR)/NativeObjects/BackButton.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/CWSplash.cpp           \
+			$(RSDKV4_DIR)/NativeObjects/CreditText.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/DialogPanel.cpp        \
+			$(RSDKV4_DIR)/NativeObjects/FadeScreen.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/InstructionsScreen.cpp \
+			$(RSDKV4_DIR)/NativeObjects/LeaderboardsButton.cpp \
+			$(RSDKV4_DIR)/NativeObjects/MenuBG.cpp             \
+			$(RSDKV4_DIR)/NativeObjects/MenuControl.cpp        \
+			$(RSDKV4_DIR)/NativeObjects/ModInfoButton.cpp      \
+			$(RSDKV4_DIR)/NativeObjects/ModsButton.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/ModsMenu.cpp           \
+			$(RSDKV4_DIR)/NativeObjects/MultiplayerButton.cpp  \
+			$(RSDKV4_DIR)/NativeObjects/MultiplayerHandler.cpp \
+			$(RSDKV4_DIR)/NativeObjects/MultiplayerScreen.cpp  \
+			$(RSDKV4_DIR)/NativeObjects/OptionsButton.cpp      \
+			$(RSDKV4_DIR)/NativeObjects/OptionsMenu.cpp        \
+			$(RSDKV4_DIR)/NativeObjects/PauseMenu.cpp          \
+			$(RSDKV4_DIR)/NativeObjects/PlayerSelectScreen.cpp \
+			$(RSDKV4_DIR)/NativeObjects/PushButton.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/RecordsScreen.cpp      \
+			$(RSDKV4_DIR)/NativeObjects/RetroGameLoop.cpp      \
+			$(RSDKV4_DIR)/NativeObjects/SaveSelect.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/SegaIDButton.cpp       \
+			$(RSDKV4_DIR)/NativeObjects/SegaSplash.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/SettingsScreen.cpp     \
+			$(RSDKV4_DIR)/NativeObjects/StaffCredits.cpp       \
+			$(RSDKV4_DIR)/NativeObjects/StartGameButton.cpp    \
+			$(RSDKV4_DIR)/NativeObjects/SubMenuButton.cpp      \
+			$(RSDKV4_DIR)/NativeObjects/TextLabel.cpp          \
+			$(RSDKV4_DIR)/NativeObjects/TimeAttack.cpp         \
+			$(RSDKV4_DIR)/NativeObjects/TimeAttackButton.cpp   \
+			$(RSDKV4_DIR)/NativeObjects/TitleScreen.cpp        \
+			$(RSDKV4_DIR)/NativeObjects/VirtualDPad.cpp        \
+			$(RSDKV4_DIR)/NativeObjects/VirtualDPadM.cpp       \
+			$(RSDKV4_DIR)/NativeObjects/ZoneButton.cpp         \
+
+
+INCLUDES += \
+			-I$(RSDKV4_DIR)/ \
+			-I$(RSDKV4_DIR)/NativeObjects/ \
+			-I$(CURDIR)/dependencies/xbox/ogg/ \
+			-I$(CURDIR)/dependencies/xbox/vorbis/ \
+			-I$(CURDIR)/dependencies/xbox/stb/
+
+EXTRA_OFLAGS = \
+						-O2 \
+						-fsigned-char \
+						-fpermissive
+
+RSDK_FLAGS	=	\
+					-D__XBOX__ \
+					-DRETRO_USE_MOD_LOADER=0 \
+					-DRETRO_USING_OPENGL=0 \
+					-DRSDK_AUTOBUILD \
+					-DRETRO_USE_NETWORKING=0 \
+					-DBASE_PATH='"D:\\"' \
+
+STB_FLAGS = \
+					-DSTBI_NO_SIMD \
+					-DSTBI_NO_THREAD_LOCALS \
+					-DSTBI_ONLY_PNG \
+					-DSTBI_ONLY_JPEG \
+					-DSTBI_ONLY_TGA \
+					-DSTBI_ONLY_BMP
+
+CFLAGS	+=	-g3 $(EXTRA_OFLAGS) -Wall $(INCLUDES) $(RSDK_FLAGS) $(STB_FLAGS)
+
+CXXFLAGS +=	$(CFLAGS) -Wpedantic
+
+new_all: copy_resources all
+
+# Add vorbis and ogg
+include $(CURDIR)/dependencies/xbox/Makefile-vorbis.nxdk
+include $(CURDIR)/dependencies/xbox/Makefile-ogg.nxdk
+
+include $(NXDK_DIR)/Makefile
+
+copy_resources:
+	@mkdir -p $(OUTPUT_DIR)
+	@cp -r ../s1-rsdk/Data.rsdk $(OUTPUT_DIR)
+
+clean_local:
+	@echo clean ...
+	rm -Rf ./bin
+	find . -name '*.iso' -type f -delete
+	find . -name '*.obj' ! -path './dependencies/xbox/nxdk/*' -type f -delete
+	find . -name '*.d' ! -path './dependencies/xbox/nxdk/*' -type f -delete

@@ -10,3 +10,12 @@
 [submodule "dependencies/all/asio"]
 	path = dependencies/all/asio
 	url = https://github.com/chriskohlhoff/asio.git
+[submodule "dependencies/xbox/nxdk"]
+	path = dependencies/xbox/nxdk
+	url = https://github.com/danielgpinheiro/nxdk
+[submodule "dependencies/xbox/vorbis"]
+	path = dependencies/xbox/vorbis
+	url = https://github.com/danielgpinheiro/vorbis
+[submodule "dependencies/xbox/ogg"]
+	path = dependencies/xbox/ogg
+	url = https://github.com/xiph/ogg
