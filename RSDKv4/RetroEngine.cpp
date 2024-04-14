@@ -531,6 +531,7 @@ void RetroEngine::Run()
     unsigned long long prevTicks  = 0;
 
     while (running) {
+        debugPrint("running \n");
 #if !RETRO_USE_ORIGINAL_CODE
         if (!vsync) {
             curTicks = SDL_GetPerformanceCounter();

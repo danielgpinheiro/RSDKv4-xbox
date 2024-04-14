@@ -139,6 +139,7 @@ typedef unsigned int uint;
 #if RETRO_PLATFORM == RETRO_XBOX
 #define RETRO_SW_RENDER (1)
 #define RETRO_HW_RENDER (0)
+#define RETRO_RENDERTYPE (RETRO_SW_RENDER)
 #else
 #define RETRO_SW_RENDER (0)
 #define RETRO_HW_RENDER (1)
@@ -439,7 +440,11 @@ public:
     char startSceneID[0x10];
 
     bool showPaletteOverlay = false;
-    bool useHQModes         = true;
+    #if RETRO_PLATFORM == RETRO_XBOX
+        bool useHQModes = false;
+    #else
+        bool useHQModes = true;
+    #endif
 
     bool hasFocus  = true;
     int focusState = 0;

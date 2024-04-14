@@ -247,7 +247,11 @@ void InitUserdata()
         Engine.startList_Game  = Engine.startList;
         Engine.startStage_Game = Engine.startStage;
 
-        ini.SetBool("Dev", "UseHQModes", Engine.useHQModes = true);
+        #if RETRO_PLATFORM == RETRO_XBOX
+            ini.SetBool("Dev", "UseHQModes", Engine.useHQModes = false);
+        #else
+            ini.SetBool("Dev", "UseHQModes", Engine.useHQModes = true);
+        #endif
         ini.SetString("Dev", "DataFile", (char *)"Data.rsdk");
         StrCopy(Engine.dataFile[0], "Data.rsdk");
         if (!StrComp(Engine.dataFile[1], "")) {
@@ -388,7 +392,11 @@ void InitUserdata()
         if (!ini.GetInteger("Dev", "FastForwardSpeed", &Engine.fastForwardSpeed))
             Engine.fastForwardSpeed = 8;
         if (!ini.GetBool("Dev", "UseHQModes", &Engine.useHQModes))
-            Engine.useHQModes = true;
+            #if RETRO_PLATFORM == RETRO_XBOX
+                Engine.useHQModes = false;
+            #else
+                Engine.useHQModes = true;
+            #endif
 
         Engine.startList_Game  = Engine.startList;
         Engine.startStage_Game = Engine.startStage;

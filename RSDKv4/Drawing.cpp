@@ -58,12 +58,17 @@ int InitRenderDevice()
 
 #if !RETRO_USE_ORIGINAL_CODE
 #if RETRO_USING_SDL2
-    SDL_Init(SDL_INIT_EVERYTHING);
+    #if RETRO_PLATFORM == RETRO_XBOX
+        VIDEO_MODE xmode = XVideoGetMode();
+        SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+    #else
+        SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_DisableScreenSaver();
+        SDL_DisableScreenSaver();
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
-    SDL_SetHint(SDL_HINT_RENDER_VSYNC, Engine.vsync ? "1" : "0");
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+        SDL_SetHint(SDL_HINT_RENDER_VSYNC, Engine.vsync ? "1" : "0");
+    #endif
 
     byte flags = 0;
 #if RETRO_USING_OPENGL
@@ -100,23 +105,44 @@ int InitRenderDevice()
 #endif
 
     SCREEN_CENTERX = SCREEN_XSIZE / 2;
-    Engine.window  = SDL_CreateWindow(gameTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_XSIZE * Engine.windowScale,
+    #if RETRO_PLATFORM == RETRO_XBOX
+        Engine.window   = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_XSIZE, SCREEN_YSIZE, SDL_WINDOW_SHOWN);
+    #else
+        Engine.window   = SDL_CreateWindow(gameTitle, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_XSIZE * Engine.windowScale,
                                      SCREEN_YSIZE * Engine.windowScale, SDL_WINDOW_ALLOW_HIGHDPI | flags);
+    #endif
 
     if (!Engine.window) {
+        debugPrint(SDL_GetError());
         PrintLog("ERROR: failed to create window!");
         return 0;
     }
 
 #if !RETRO_USING_OPENGL
-    Engine.renderer = SDL_CreateRenderer(Engine.window, -1, SDL_RENDERER_ACCELERATED);
+    #if RETRO_PLATFORM == RETRO_XBOX
+        byte rendererFlag = 0;
+
+        if (xmode.width == 640) {
+            rendererFlag |= SDL_RENDERER_PRESENTVSYNC;
+        }
+
+        Engine.renderer = SDL_CreateRenderer(Engine.window, -1, rendererFlag);
+    #else
+        Engine.renderer = SDL_CreateRenderer(Engine.window, -1, SDL_RENDERER_ACCELERATED);
+    #endif  
 
     if (!Engine.renderer) {
+        debugPrint(SDL_GetError());
         PrintLog("ERROR: failed to create renderer!");
         return 0;
     }
 
-    SDL_RenderSetLogicalSize(Engine.renderer, SCREEN_XSIZE, SCREEN_YSIZE);
+    #if RETRO_PLATFORM == RETRO_XBOX
+        SDL_RenderSetLogicalSize(Engine.renderer, 100, 100);
+    #else
+        SDL_RenderSetLogicalSize(Engine.renderer, SCREEN_XSIZE, SCREEN_YSIZE);
+    #endif
+
     SDL_SetRenderDrawBlendMode(Engine.renderer, SDL_BLENDMODE_BLEND);
 
 #if RETRO_SOFTWARE_RENDER
@@ -127,13 +153,16 @@ int InitRenderDevice()
         return 0;
     }
 
-    // Engine.screenBuffer2x =
-    //     SDL_CreateTexture(Engine.renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, SCREEN_XSIZE * 2, SCREEN_YSIZE * 2);
+    #if RETRO_PLATFORM != RETRO_XBOX
+        Engine.screenBuffer2x = SDL_CreateTexture(Engine.renderer, SDL_PIXELFORMAT_RGB565, SDL_TEXTUREACCESS_STREAMING, SCREEN_XSIZE * 2, SCREEN_YSIZE * 2);
+   
+        if (!Engine.screenBuffer2x) {
+            PrintLog("ERROR: failed to create screen buffer HQ!\nerror msg: %s", SDL_GetError());
+            return 0;
+        }
+    #endif
 
-    // if (!Engine.screenBuffer2x) {
-    //     PrintLog("ERROR: failed to create screen buffer HQ!\nerror msg: %s", SDL_GetError());
-    //     return 0;
-    // }
+    
 #endif
 #endif
 
@@ -273,9 +302,12 @@ int InitRenderDevice()
 
 #if RETRO_SOFTWARE_RENDER
     Engine.frameBuffer   = new ushort[GFX_LINESIZE * SCREEN_YSIZE];
-    Engine.frameBuffer2x = new ushort[GFX_LINESIZE_DOUBLE * (SCREEN_YSIZE * 2)];
     memset(Engine.frameBuffer, 0, (GFX_LINESIZE * SCREEN_YSIZE) * sizeof(ushort));
-    memset(Engine.frameBuffer2x, 0, GFX_LINESIZE_DOUBLE * (SCREEN_YSIZE * 2) * sizeof(ushort));
+
+    #if RETRO_PLATFORM != RETRO_XBOX
+        Engine.frameBuffer2x = new ushort[GFX_LINESIZE_DOUBLE * (SCREEN_YSIZE * 2)];
+        memset(Engine.frameBuffer2x, 0, GFX_LINESIZE_DOUBLE * (SCREEN_YSIZE * 2) * sizeof(ushort));
+    #endif
 #endif
     Engine.texBuffer = new uint[GFX_LINESIZE * SCREEN_YSIZE];
     memset(Engine.texBuffer, 0, (GFX_LINESIZE * SCREEN_YSIZE) * sizeof(uint));
@@ -399,6 +431,7 @@ void FlipScreen()
         SDL_UnlockTexture(Engine.screenBuffer);
 
         SDL_RenderCopy(Engine.renderer, Engine.screenBuffer, NULL, NULL);
+        PrintLog("ERROR: custom: %s", SDL_GetError());
     }
     else {
         int w = 0, h = 0;
@@ -462,11 +495,12 @@ void FlipScreen()
     }
     else {
         // Apply dimming
-        SDL_SetRenderDrawColor(Engine.renderer, 0, 0, 0, 0xFF - (dimAmount * 0xFF));
+        SDL_SetRenderDrawColor(Engine.renderer, 100, 100, 100, 0xFF - (dimAmount * 0xFF));
         if (dimAmount < 1.0)
             SDL_RenderFillRect(Engine.renderer, NULL);
         // no change here
         SDL_RenderPresent(Engine.renderer);
+        PrintLog("ERROR: custom: %s", SDL_GetError());
     }
     SDL_ShowWindow(Engine.window);
 #endif
